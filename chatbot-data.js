@@ -284,19 +284,7 @@ Timing: Monday to Saturday, 8:00 AM - 3:00 PM
 ═══════════════════════════════════════════════════════════════
             Trust RVVM for Quality Education Since 1993
 ═══════════════════════════════════════════════════════════════
-about bot:
-🤖 *मैं RVVM Virtual Assistant हूँ!*
 
-👨‍💻 *Developed by:* Avnish Kumar - RVVM student
-🎓 *School:* Radhika Vilas Vidya Mandir, Ballia
-⚡ *Powered by:* RVVM Tchnical team
-🌐 *Portfolio:* 
-
-💡 *मेरा काम:* School information provide करना और parents/students की help करना
-
-📚 आप मुझसे admission, timing, facilities, fees - सब कुछ पूछ सकते हैं!
-
-📞 Direct contact: 070712 50111
 `;
 
 // ==================== PREDEFINED RESPONSES ====================
@@ -671,5 +659,6 @@ function logStatus() {
     });
     console.log(`Current Model: ${AI_MODELS[currentModelIndex]}\n`);
 }
+
 
 

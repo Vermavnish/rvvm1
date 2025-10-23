@@ -1,0 +1,12 @@
+[build]
+  command = ""
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Ignore build commands
+[build.environment]
+  NODE_VERSION = "18"
+

@@ -1,0 +1,8 @@
+{
+  "name": "rvvm-chatbot",
+  "version": "1.0.0",
+  "description": "RVVM School Chatbot with AI",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  }
+}

@@ -1,16 +1,14 @@
-// RVVM Chatbot Script with Advanced Typo Tolerance
+// RVVM Chatbot Script with AI Integration
 
-// Levenshtein Distance Algorithm for fuzzy matching
+// Levenshtein Distance for typo tolerance
 function levenshteinDistance(str1, str2) {
     str1 = str1.toLowerCase();
     str2 = str2.toLowerCase();
     
     const matrix = [];
-    
     for (let i = 0; i <= str2.length; i++) {
         matrix[i] = [i];
     }
-    
     for (let j = 0; j <= str1.length; j++) {
         matrix[0][j] = j;
     }
@@ -32,11 +30,11 @@ function levenshteinDistance(str1, str2) {
     return matrix[str2.length][str1.length];
 }
 
-// Find best matching response
-function findBestMatch(userInput) {
+// Find predefined match (fallback)
+function findPredefinedMatch(userInput) {
     userInput = userInput.toLowerCase().trim();
     
-    // First: Exact pattern matching
+    // Exact pattern matching
     for (let category in chatbotData) {
         if (category === 'default') continue;
         
@@ -45,60 +43,40 @@ function findBestMatch(userInput) {
             if (userInput.includes(pattern.toLowerCase())) {
                 return chatbotData[category].response;
             }
-        }
-    }
-    
-    // Second: Fuzzy matching with Levenshtein distance
-    let bestMatch = null;
-    let bestScore = Infinity;
-    const threshold = 3; // Maximum 3 character difference allowed
-    
-    for (let category in chatbotData) {
-        if (category === 'default') continue;
-        
-        const patterns = chatbotData[category].patterns;
-        for (let pattern of patterns) {
-            const distance = levenshteinDistance(userInput, pattern);
-            if (distance < bestScore && distance <= threshold) {
-                bestScore = distance;
-                bestMatch = chatbotData[category].response;
-            }
-        }
-    }
-    
-    if (bestMatch) {
-        return bestMatch;
-    }
-    
-    // Third: Word-by-word matching
-    const userWords = userInput.split(' ');
-    for (let category in chatbotData) {
-        if (category === 'default') continue;
-        
-        const patterns = chatbotData[category].patterns;
-        for (let pattern of patterns) {
-            const patternWords = pattern.toLowerCase().split(' ');
-            let matchCount = 0;
             
-            for (let userWord of userWords) {
-                for (let patternWord of patternWords) {
-                    if (levenshteinDistance(userWord, patternWord) <= 2) {
-                        matchCount++;
-                    }
-                }
-            }
-            
-            if (matchCount >= Math.min(userWords.length, patternWords.length) * 0.6) {
+            // Fuzzy match with Levenshtein distance
+            if (levenshteinDistance(userInput, pattern) <= 3) {
                 return chatbotData[category].response;
             }
         }
     }
     
-    // Default response if nothing matches
+    return null;
+}
+
+// Main response function with AI
+async function getBotResponse(userQuery) {
+    // Step 1: Try predefined responses first (instant + free)
+    const predefinedResponse = findPredefinedMatch(userQuery);
+    if (predefinedResponse) {
+        console.log('✅ Using predefined response (instant)');
+        return predefinedResponse;
+    }
+    
+    // Step 2: Try AI if predefined not found
+    console.log('🔍 No predefined match, trying AI...');
+    const aiResponse = await callGeminiAPI(userQuery);
+    
+    if (aiResponse) {
+        return aiResponse;
+    }
+    
+    // Step 3: Fallback to default
+    console.log('⚠️ AI failed, using default response');
     return chatbotData.default.response;
 }
 
-// Display message in chat
+// Display message
 function displayMessage(message, isUser = false) {
     const chatBody = document.getElementById('chatbotBody');
     const messageDiv = document.createElement('div');
@@ -107,7 +85,6 @@ function displayMessage(message, isUser = false) {
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
     
-    // Format bot messages with proper line breaks
     if (!isUser) {
         contentDiv.innerHTML = message.replace(/\n/g, '<br>');
     } else {
@@ -116,13 +93,34 @@ function displayMessage(message, isUser = false) {
     
     messageDiv.appendChild(contentDiv);
     chatBody.appendChild(messageDiv);
-    
-    // Scroll to bottom
     chatBody.scrollTop = chatBody.scrollHeight;
 }
 
+// Show typing indicator
+function showTypingIndicator() {
+    const chatBody = document.getElementById('chatbotBody');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message bot-message';
+    typingDiv.id = 'typing-indicator';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+    
+    typingDiv.appendChild(contentDiv);
+    chatBody.appendChild(typingDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
 // Send message function
-function sendMessage() {
+async function sendMessage() {
     const inputField = document.getElementById('userInput');
     const userMessage = inputField.value.trim();
     
@@ -130,18 +128,22 @@ function sendMessage() {
     
     // Display user message
     displayMessage(userMessage, true);
-    
-    // Clear input field
     inputField.value = '';
     
-    // Get bot response with slight delay for natural feel
-    setTimeout(() => {
-        const botResponse = findBestMatch(userMessage);
-        displayMessage(botResponse, false);
-    }, 500);
+    // Show typing indicator
+    showTypingIndicator();
+    
+    // Get bot response (with AI)
+    const botResponse = await getBotResponse(userMessage);
+    
+    // Remove typing indicator
+    removeTypingIndicator();
+    
+    // Display bot response
+    displayMessage(botResponse, false);
 }
 
-// Handle Enter key press
+// Handle Enter key
 function handleKeyPress(event) {
     if (event.key === 'Enter') {
         sendMessage();
@@ -155,7 +157,7 @@ function sendQuickQuery(query) {
     sendMessage();
 }
 
-// Toggle chatbot (minimize/maximize)
+// Toggle chatbot
 function toggleChatbot() {
     const chatBody = document.getElementById('chatbotBody');
     const footer = document.querySelector('.chatbot-footer');
@@ -172,7 +174,8 @@ function toggleChatbot() {
     }
 }
 
-// Initialize chatbot
+// Initialize
 window.addEventListener('load', () => {
-    console.log('RVVM Chatbot initialized successfully! 🎓');
+    console.log('🎓 RVVM Chatbot initialized successfully!');
+    console.log(`📊 AI calls today: ${apiCallCount}/${MAX_API_CALLS}`);
 });

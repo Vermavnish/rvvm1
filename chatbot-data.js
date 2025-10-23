@@ -495,6 +495,8 @@ async function callGeminiAPI(userQuery, retryCount = 0, modelIndex = 0) {
 
 Your role: Help students, parents, and visitors with accurate school information.
 
+
+
 Communication Style:
 - Answer in Hindi/English mix (Hinglish) matching user's language
 - Keep responses concise (2-4 lines maximum)
@@ -509,6 +511,8 @@ Guidelines:
 - For fees/scholarship, direct to office as fees vary by class
 - Always provide phone/email for detailed queries
 - Maintain school's reputation with positive language
+-only when specially asking about developer give details devloper name Avnish kumar,mobile no-8417858592,linkedin-https://www.linkedin.com/in/avnish-verma-93078336a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app
+
 
 Complete School Information Database:
 ${schoolContext}
@@ -674,6 +678,7 @@ function logStatus() {
     });
     console.log(`Current Model: ${AI_MODELS[currentModelIndex]}\n`);
 }
+
 
 
 

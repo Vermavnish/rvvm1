@@ -284,11 +284,42 @@ Timing: Monday to Saturday, 8:00 AM - 3:00 PM
 ═══════════════════════════════════════════════════════════════
             Trust RVVM for Quality Education Since 1993
 ═══════════════════════════════════════════════════════════════
+about bot:
+🤖 *मैं RVVM Virtual Assistant हूँ!*
+
+👨‍💻 *Developed by:* Avnish Kumar - RVVM student
+🎓 *School:* Radhika Vilas Vidya Mandir, Ballia
+⚡ *Powered by:* RVVM Tchnical team
+🌐 *Portfolio:* 
+
+💡 *मेरा काम:* School information provide करना और parents/students की help करना
+
+📚 आप मुझसे admission, timing, facilities, fees - सब कुछ पूछ सकते हैं!
+
+📞 Direct contact: 070712 50111
 `;
 
 // ==================== PREDEFINED RESPONSES ====================
 
 const chatbotData = {
+     about_bot: {
+        patterns: [
+            "tumhe kisne banaya", "who made you", "who created you", "developer kaun hai",
+            "tum kaun ho", "chatbot kisne banaya", "tumhara naam", "kon ho tum"
+        ],
+        response: `🤖 *मैं RVVM Virtual Assistant हूँ!*
+
+👨‍💻 *Developed by:* Avnish Kumar - RVVM student
+🎓 *School:* Radhika Vilas Vidya Mandir, Ballia
+⚡ *Powered by:* RVVM Tchnical team
+🌐 *Portfolio:* 
+
+💡 *मेरा काम:* School information provide करना और parents/students की help करना
+
+📚 आप मुझसे admission, timing, facilities, fees - सब कुछ पूछ सकते हैं!
+
+📞 Direct contact: 070712 50111`
+    },
     timing: {
         patterns: [
             "school timing", "school timings", "school time", "school hours", "school schedule",
@@ -302,123 +333,123 @@ const chatbotData = {
 🕗 *सोमवार से शनिवार:* सुबह 8:00 AM से दोपहर 3:00 PM तक
 📴 *रविवार:* अवकाश (Holiday)
 
-📞 अधिक जानकारी: 070712 50111`
-    },
+// 📞 अधिक जानकारी: 070712 50111`
+//     },
 
-    admission: {
-        patterns: [
-            "admission", "admissions", "admission process", "how to get admission",
-            "admision", "admissn", "addmission", "dakhla", "pravesh",
-            "admission kaise le", "dakhla kaise le", "admission chahiye"
-        ],
-        response: `📝 *RVVM Admission Process:*
+//     admission: {
+//         patterns: [
+//             "admission", "admissions", "admission process", "how to get admission",
+//             "admision", "admissn", "addmission", "dakhla", "pravesh",
+//             "admission kaise le", "dakhla kaise le", "admission chahiye"
+//         ],
+//         response: `📝 *RVVM Admission Process:*
 
-✅ *Steps:*
-1. School office visit करें (8 AM - 3 PM)
-2. Admission form भरें
-3. Documents submit करें
+// ✅ *Steps:*
+// 1. School office visit करें (8 AM - 3 PM)
+// 2. Admission form भरें
+// 3. Documents submit करें
 
-📞 *Contact:*
-☎️ 070712 50111 / +91 70712 50999
-📧 radhikavilaschakia@gmail.com
-💬 WhatsApp: +91 70712 50999
-🌐 https://rvvm.netlify.app`
-    },
+// 📞 *Contact:*
+// ☎️ 070712 50111 / +91 70712 50999
+// 📧 radhikavilaschakia@gmail.com
+// 💬 WhatsApp: +91 70712 50999
+// 🌐 https://rvvm.netlify.app`
+//     },
 
-    contact: {
-        patterns: [
-            "contact", "contact details", "phone number", "contact number",
-            "contect", "cantact", "sampark", "number do", "phone chahiye"
-        ],
-        response: `📞 *RVVM Contact:*
+//     contact: {
+//         patterns: [
+//             "contact", "contact details", "phone number", "contact number",
+//             "contect", "cantact", "sampark", "number do", "phone chahiye"
+//         ],
+//         response: `📞 *RVVM Contact:*
 
-☎️ 070712 50111
-📱 +91 70712 50999
-📧 radhikavilaschakia@gmail.com
-💬 WhatsApp: +91 70712 50999
-🌐 https://rvvm.netlify.app`
-    },
+// ☎️ 070712 50111
+// 📱 +91 70712 50999
+// 📧 radhikavilaschakia@gmail.com
+// 💬 WhatsApp: +91 70712 50999
+// 🌐 https://rvvm.netlify.app`
+//     },
 
-    address: {
-        patterns: [
-            "address", "location", "where is school", "school address",
-            "addres", "pata", "school ka pata", "kaha hai"
-        ],
-        response: `📍 *RVVM Address:*
+//     address: {
+//         patterns: [
+//             "address", "location", "where is school", "school address",
+//             "addres", "pata", "school ka pata", "kaha hai"
+//         ],
+//         response: `📍 *RVVM Address:*
 
-🏫 Radhika Vilas Vidya Mandir
-SH-1B, Chakia (Dalpatpur)
-Ballia, Uttar Pradesh, India
+// 🏫 Radhika Vilas Vidya Mandir
+// SH-1B, Chakia (Dalpatpur)
+// Ballia, Uttar Pradesh, India
 
-🚌 School bus facility available
-📞 Directions: 070712 50111`
-    },
+// 🚌 School bus facility available
+// 📞 Directions: 070712 50111`
+//     },
 
-    facilities: {
-        patterns: [
-            "facilities", "facility", "what facilities", "school facilities",
-            "facilites", "suvidha", "school me kya hai"
-        ],
-        response: `🏫 *RVVM Facilities:*
+//     facilities: {
+//         patterns: [
+//             "facilities", "facility", "what facilities", "school facilities",
+//             "facilites", "suvidha", "school me kya hai"
+//         ],
+//         response: `🏫 *RVVM Facilities:*
 
-🔬 Science Lab | 💻 Computer Lab | ⚽ Playground
-⚡ 24/7 Power | 🛡️ Security | 🔥 Fire Safety
-🚌 School Bus | 🎓 Scholarship
+// 🔬 Science Lab | 💻 Computer Lab | ⚽ Playground
+// ⚡ 24/7 Power | 🛡️ Security | 🔥 Fire Safety
+// 🚌 School Bus | 🎓 Scholarship
 
-📞 More info: 070712 50111`
-    },
+// 📞 More info: 070712 50111`
+//     },
 
-    classes: {
-        patterns: [
-            "classes", "which classes", "class available",
-            "clasess", "kaun kaun si class", "konsi class tak"
-        ],
-        response: `📚 *RVVM Classes:*
+//     classes: {
+//         patterns: [
+//             "classes", "which classes", "class available",
+//             "clasess", "kaun kaun si class", "konsi class tak"
+//         ],
+//         response: `📚 *RVVM Classes:*
 
-🎒 Nursery to Class 10
+// 🎒 Nursery to Class 10
 
-📖 *Medium:*
-• Nursery-8th: English
-• 9th-10th: Hindi
+// 📖 *Medium:*
+// • Nursery-8th: English
+// • 9th-10th: Hindi
 
-📋 Board: U.P. Board`
-    },
+// 📋 Board: U.P. Board`
+//     },
 
-    fees: {
-        patterns: [
-            "fees", "fee structure", "school fees", "how much fees",
-            "fess", "fees kitni hai", "kitna paisa"
-        ],
-        response: `💰 *RVVM Fees:*
+//     fees: {
+//         patterns: [
+//             "fees", "fee structure", "school fees", "how much fees",
+//             "fess", "fees kitni hai", "kitna paisa"
+//         ],
+//         response: `💰 *RVVM Fees:*
 
-Fees details के लिए संपर्क करें:
-☎️ 070712 50111 / +91 70712 50999
+// Fees details के लिए संपर्क करें:
+// ☎️ 070712 50111 / +91 70712 50999
 
-🎓 Scholarship available for poor, orphan & handicapped students`
-    },
+// 🎓 Scholarship available for poor, orphan & handicapped students`
+//     },
 
-    management: {
-        patterns: [
-            "chairman", "director", "principal", "management",
-            "charman", "chairman kaun", "director kaun"
-        ],
-        response: `👔 *RVVM Management:*
+//     management: {
+//         patterns: [
+//             "chairman", "director", "principal", "management",
+//             "charman", "chairman kaun", "director kaun"
+//         ],
+//         response: `👔 *RVVM Management:*
 
-👨‍💼 Chairman: Mr. Ravi Shankar Singh
-👨‍💼 Director: Mr. Bhaskar Singh
-🕊️ Founder: Lt. Vindhyachal Prasad Singh (1924-2009)
+// 👨‍💼 Chairman: Mr. Ravi Shankar Singh
+// 👨‍💼 Director: Mr. Bhaskar Singh
+// 🕊️ Founder: Lt. Vindhyachal Prasad Singh (1924-2009)
 
-📞 Contact: 070712 50111`
-    },
+// 📞 Contact: 070712 50111`
+//     },
 
-    default: {
-        response: `❓ *मुझे समझ नहीं आया।*
+//     default: {
+//         response: `❓ *मुझे समझ नहीं आया।*
 
-पूछ सकते हैं:
-🕗 Timing | 📝 Admission | 📞 Contact
-📍 Address | 🏫 Facilities | 📚 Classes
+// पूछ सकते हैं:
+// 🕗 Timing | 📝 Admission | 📞 Contact
+// 📍 Address | 🏫 Facilities | 📚 Classes
 
-या call करें: 070712 50111`
+// या call करें: 070712 50111`
     }
 };
 
@@ -657,3 +688,4 @@ function logStatus() {
     });
     console.log(`Current Model: ${AI_MODELS[currentModelIndex]}\n`);
 }
+

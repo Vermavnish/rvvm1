@@ -2,7 +2,7 @@
 // ⚠️ WARNING: API key is visible in source code
 
 const GEMINI_API_KEY = 'AIzaSyCCT_l1DjDypxGx94YXiXQ1ryMMimuBf2k'; // ← PASTE YOUR API KEY HERE
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
 
 // School Information Context
 const schoolContext = `
@@ -369,3 +369,4 @@ Helpful Answer:`
         return null;
     }
 }
+

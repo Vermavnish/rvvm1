@@ -284,6 +284,19 @@ Timing: Monday to Saturday, 8:00 AM - 3:00 PM
 ═══════════════════════════════════════════════════════════════
             Trust RVVM for Quality Education Since 1993
 ═══════════════════════════════════════════════════════════════
+   
+    about_bot:
+        🤖 *RVVM Virtual Assistant*
+
+ Radhika Vilas Vidya Mandir की AI-powered assistant
+
+👨‍💻 *Developed by:* Avnish kumar
+⚡ *Technology:* Google Gemini AI
+🎓 *Purpose:* School information और guidance
+
+
+    
+
 
 `;
 
@@ -477,6 +490,8 @@ async function callGeminiAPI(userQuery, retryCount = 0, modelIndex = 0) {
                 contents: [{
                     parts: [{
                       text: `You are the official virtual assistant of Radhika Vilas Vidya Mandir (RVVM), Ballia.
+                      developed by:Avnish Kumar
+                      powered by:RVVM Technical team.
 
 Your role: Help students, parents, and visitors with accurate school information.
 
@@ -659,6 +674,7 @@ function logStatus() {
     });
     console.log(`Current Model: ${AI_MODELS[currentModelIndex]}\n`);
 }
+
 
 
 

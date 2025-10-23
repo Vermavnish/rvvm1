@@ -1,35 +1,293 @@
-// RVVM School Chatbot Data with Direct API Integration
-// ⚠️ WARNING: API key is visible in source code
+// RVVM School Chatbot Data with Advanced API Integration
+// Features: Multi-key rotation, Model fallback, Auto-retry, Error handling
 
-const GEMINI_API_KEY = 'AIzaSyCCT_l1DjDypxGx94YXiXQ1ryMMimuBf2k'; // ← PASTE YOUR API KEY HERE
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:generateContent';
+// ==================== CONFIGURATION ====================
 
-// School Information Context
+// Multiple API Keys (add 2-3 keys for load balancing)
+const API_KEYS = [
+    'AIzaSyAu92hVQQAOkuUVZn2Nylj5SDSvr5-cOT4',  // ← Replace with real key 1
+    'AIzaSyCCivTv69IanKB8CwxdbuOGJ-2RWDDeOYM',  // ← Replace with real key 2 (optional)
+    'AIzaSyCCT_l1DjDypxGx94YXiXQ1ryMMimuBf2k'   // ← Replace with real key 3 (optional)
+];
+
+// Multiple Models (fallback order: fast → stable → powerful)
+const AI_MODELS = [
+    'gemini-2.5-flash',        // Fastest, most reliable
+    'gemini-flash-latest',     // Stable alternative
+    'gemini-2.0-flash',        // Backup option
+    'gemini-pro-latest'        // Powerful fallback
+];
+
+// Settings
+const MAX_REQUESTS_PER_KEY = 250;  // Google free tier limit
+const MAX_RETRIES = 2;              // Retry attempts per request
+const RETRY_DELAY = 2000;           // 2 seconds between retries
+
+// Tracking
+let currentKeyIndex = 0;
+let currentModelIndex = 0;
+let keyUsageCount = Array(API_KEYS.length).fill(0);
+
+// ==================== SCHOOL INFORMATION ====================
+
 const schoolContext = `
+═══════════════════════════════════════════════════════════════
+                    RADHIKA VILAS VIDYA MANDIR (RVVM)
+                    Complete School Information Database
+═══════════════════════════════════════════════════════════════
+
+📍 BASIC INFORMATION:
+-------------------
 School Name: Radhika Vilas Vidya Mandir (RVVM)
-Location: SH-1B, Chakia (Dalpatpur), Ballia, Uttar Pradesh
-Contact: 070712 50111, +91 70712 50999
+Established: 1993 (32+ years of excellence)
+Location: SH-1B, Chakia (Dalpatpur), Ballia, Uttar Pradesh, India
+Landmark: State Highway 1B, easily accessible from Chakia town
+Area: Dalpatpur village, Chakia tehsil, Ballia district
+
+📞 CONTACT DETAILS:
+------------------
+Primary Phone: 070712 50111
+Secondary Phone: +91 70712 50999 (WhatsApp available)
+Email: radhikavilaschakia@gmail.com
+Official Website: https://rvvm.netlify.app
+Facebook: Radhika Vilas Vidya Mandir (Official Page)
+WhatsApp Support: Available Mon-Sat, 8 AM - 3 PM
+
+🕐 SCHOOL TIMINGS:
+-----------------
+Working Days: Monday to Saturday
+School Hours: 8:00 AM to 3:00 PM (7 hours daily)
+Morning Assembly: 8:00 AM - 8:30 AM
+Class Sessions: 8:30 AM - 2:30 PM
+Break/Lunch: 12:00 PM - 12:30 PM (30 minutes)
+Closing Time: 3:00 PM
+Weekly Holiday: Sunday (full day off)
+Annual Holidays: As per U.P. Board calendar + national holidays
+
+📚 ACADEMIC INFORMATION:
+-----------------------
+Classes Offered: Nursery to Class 10th (complete primary + secondary education)
+
+Class Structure:
+- Pre-Primary: Nursery, LKG, UKG
+- Primary: Class 1, 2, 3, 4, 5
+- Upper Primary: Class 6, 7, 8
+- Secondary: Class 9, 10
+
+Medium of Instruction:
+- Nursery to Class 8: English Medium (all subjects taught in English)
+- Class 9 to 10: Hindi Medium (as per U.P. Board requirement)
+
+Board Affiliation: 
+- Uttar Pradesh Board (U.P. Board)
+- DIOS (District Inspector of Schools) Ballia approved
+- Government recognized
+
+Subjects Taught:
+Primary Classes (1-5): English, Hindi, Mathematics, Science, Social Studies, Computer Basics, Drawing, Physical Education
+Upper Primary (6-8): English, Hindi, Mathematics, Science, Social Science, Computer Science, Sanskrit, Arts, Sports
+Secondary (9-10): Hindi, English, Mathematics, Science (Physics, Chemistry, Biology), Social Science, Computer Application
+
+Exam Pattern:
+- Regular monthly tests and assessments
+- Half-yearly examinations (September/October)
+- Annual examinations (February/March)
+- U.P. Board exams for Class 10 (February/March)
+
+Academic Session: April to March (follows U.P. Board calendar)
+
+👔 MANAGEMENT & GOVERNANCE:
+--------------------------
+Governed By: Shri Vindhyachal Seva Samiti (Registered Educational Trust)
+Founded By: Late Vindhyachal Prasad Singh (1924-2009) - Visionary educationist and social worker
+Chairman: Mr. Ravi Shankar Singh (Current)
+Director: Mr. Bhaskar Singh (Current)
+Principal: Contact school office for current principal details
+Management Type: Private aided school under trust management
+Legacy: Serving education for 32+ years with dedication to rural education development
+
+🏫 FACILITIES & INFRASTRUCTURE:
+------------------------------
+1. Science Laboratory:
+   - Well-equipped physics, chemistry, biology lab
+   - Practical sessions for classes 6-10
+   - Modern equipment and specimens
+   - Safety measures and fire extinguishers
+
+2. Computer Lab:
+   - 20+ computers with internet connectivity
+   - Latest software and educational tools
+   - Coding and programming classes
+   - Computer literacy for all students
+
+3. Playground & Sports:
+   - Large open ground for outdoor activities
+   - Cricket, football, volleyball, badminton facilities
+   - Athletics track for running events
+   - Indoor games: Table tennis, chess, carom
+
+4. Library:
+   - 2000+ books collection (Hindi & English)
+   - Reference books, encyclopedias, dictionaries
+   - Story books, magazines, newspapers
+   - Reading room for students
+
+5. Safety & Security:
+   - 24/7 security guards on duty
+   - CCTV surveillance system
+   - Fire safety equipment and fire extinguishers
+   - Emergency exit routes
+   - First-aid medical facility
+
+6. Power & Infrastructure:
+   - 24/7 power backup (generator and inverter)
+   - Uninterrupted electricity for all seasons
+   - Clean drinking water facility with RO system
+   - Well-maintained classrooms with proper lighting and ventilation
+
+7. Transportation:
+   - School bus/van facility available
+   - Multiple routes covering nearby villages
+   - Trained and verified drivers
+   - GPS tracking for safety
+   - Routes: Chakia, Dalpatpur, surrounding areas
+
+8. Other Amenities:
+   - Separate washrooms for boys and girls
+   - Clean and hygienic toilets
+   - Filtered drinking water
+   - Staff room and administrative office
+   - Prayer/assembly hall
+
+💰 FEES & SCHOLARSHIP:
+---------------------
+Fees Structure: Contact school office for detailed fee information (varies by class)
+Payment Methods: Cash, Bank transfer, Online payment accepted
+Fee Concession Available: Yes, for economically weaker sections
+Scholarship Programs:
+- Full scholarship for orphan students
+- Fee concession for economically disadvantaged children
+- Support for differently-abled (handicapped) students
+- Merit-based scholarships for top performers
+- Government scholarship assistance facilitated
+Eligibility: Contact school office with required documents
+
+📝 ADMISSION PROCESS:
+--------------------
+Admission Period: Generally March to May (for next academic session)
+Online Enquiry: Available on https://rvvm.netlify.app
+Walk-in Admission: Visit school office during working hours (8 AM - 3 PM, Mon-Sat)
+
+Admission Steps:
+1. Visit school office or call 070712 50111
+2. Collect and fill admission form
+3. Submit required documents (see below)
+4. Attend principal/coordinator interview (if required)
+5. Pay admission fee and first installment
+6. Receive admission confirmation and student ID
+
+Required Documents (General):
+- Birth certificate (original + photocopy)
+- Transfer certificate (TC) from previous school (if applicable)
+- Aadhar card of student and parent
+- Passport-size photographs (4-6 copies)
+- Previous class mark sheet/report card
+- Caste certificate (if applicable for reservation)
+- Income certificate (for scholarship/fee concession)
+- Medical fitness certificate (optional)
+
+Age Criteria:
+- Nursery: 3+ years
+- LKG: 4+ years
+- UKG: 5+ years
+- Class 1: 6+ years
+(As per government norms, +/- 6 months relaxation)
+
+🎭 EXTRA-CURRICULAR ACTIVITIES:
+------------------------------
+Annual Events:
+- Annual Day Function (cultural programs, prize distribution)
+- Sports Day (athletic competitions, games)
+- Independence Day (15 August) and Republic Day (26 January) celebrations
+- Teacher's Day (5 September) and Children's Day (14 November)
+- Saraswati Puja and other cultural festivals
+- Science Exhibition and Project Competitions
+- Inter-school competitions and debates
+
+Cultural Activities:
+- Dance, music, and drama classes
+- Hindi and English poetry recitation
+- Drawing and painting competitions
+- Essay writing and debates
+- Rangoli and craft competitions
+
+Sports & Games:
+- Cricket, Football, Volleyball, Badminton
+- Athletics (running, long jump, high jump)
+- Indoor games (Chess, Carom, Table Tennis)
+- Yoga and physical fitness sessions
+- Annual sports meet with prizes
+
+🏆 ACHIEVEMENTS & RECOGNITION:
+-----------------------------
+- 32+ years of dedicated service to education
+- Hundreds of successful alumni serving in various fields
+- Consistent good results in U.P. Board examinations
+- Recognition from District Education Department
+- Active participation in inter-school competitions
+- Community respect and trust for quality education
+
+🌟 SCHOOL MOTTO & VISION:
+------------------------
+Motto: "शिक्षा के माध्यम से जीवन को रोशन करना" (Illuminating lives through education)
+Vision: Nurturing young minds since 1993 with focus on holistic development
+Mission: Providing quality education with moral values to rural students
+Values: Discipline, Respect, Excellence, Integrity, Community Service
+
+👨‍👩‍👧‍👦 PARENT-TEACHER INTERACTION:
+---------------------------------
+Parent-Teacher Meetings (PTM): Conducted quarterly or as needed
+Progress Reports: Issued after each examination
+Communication: Via phone, SMS, WhatsApp groups, notice board
+Grievance Redressal: Principal and coordinator available for concerns
+Parent Involvement: Encouraged in school events and activities
+
+📱 ONLINE PRESENCE:
+------------------
+Official Website: https://rvvm.netlify.app
+Features: Admission form, school information, gallery, contact details
+Facebook Page: Radhika Vilas Vidya Mandir (for updates and announcements)
+Email: radhikavilaschakia@gmail.com (for queries and suggestions)
+WhatsApp: +91 70712 50999 (quick support during school hours)
+
+🔔 IMPORTANT NOTES FOR PARENTS:
+------------------------------
+1. Students must reach school by 8:00 AM daily (punctuality important)
+2. Proper school uniform is mandatory
+3. Regular attendance required (minimum 75% for board eligibility)
+4. Parents should check student diary daily for updates
+5. Mobile phones not allowed for students during school hours
+6. Any medical condition must be informed to school immediately
+7. Transport facility available but optional
+8. Library books must be returned on time
+9. Respect for teachers and staff is essential
+10. Active participation in school activities encouraged
+
+📞 FOR ANY QUERY, CONTACT:
+-------------------------
+Office Phone: 070712 50111, +91 70712 50999
 Email: radhikavilaschakia@gmail.com
 WhatsApp: +91 70712 50999
-Website: https://rvvm.netlify.app
+Visit: SH-1B, Chakia (Dalpatpur), Ballia, UP
+Timing: Monday to Saturday, 8:00 AM - 3:00 PM
 
-Timings: Monday to Saturday, 8:00 AM - 3:00 PM (Sunday holiday)
-Classes: Nursery to Class 10
-Medium: Nursery to 8th (English), 9th-10th (Hindi)
-Board: U.P. Board
-
-Facilities: Science Lab, Computer Lab, Playground, 24/7 Security, Power Backup, Fire Safety, School Bus, Scholarship for poor/orphan/handicapped students
-
-Management:
-Chairman: Mr. Ravi Shankar Singh
-Director: Mr. Bhaskar Singh
-Founder: Lt. Vindhyachal Prasad Singh (1924-2009)
-Governed by: Shri Vindhyachal Seva Samiti
-
-Admission: Visit school office during working hours or contact via phone/email/WhatsApp
+═══════════════════════════════════════════════════════════════
+            Trust RVVM for Quality Education Since 1993
+═══════════════════════════════════════════════════════════════
 `;
 
-// Predefined Responses (Fallback + Fast Answers)
+// ==================== PREDEFINED RESPONSES ====================
+
 const chatbotData = {
     timing: {
         patterns: [
@@ -37,282 +295,178 @@ const chatbotData = {
             "scool timing", "schol timing", "skool timing", "school timin", "school timming",
             "school ka samay", "school kitne baje khulta", "school kab khulta hai",
             "scool ka samay", "iskool timing", "school ka smay", "skool ka time",
-            "school ka tym", "timing kya hai", "school kb se kb tak", "time btao school ka",
-            "kitne baje se kitne baje tak", "school open time", "school band kab hota"
+            "school ka tym", "timing kya hai", "school kb se kb tak", "time btao"
         ],
         response: `📅 *RVVM School Timing:*
 
 🕗 *सोमवार से शनिवार:* सुबह 8:00 AM से दोपहर 3:00 PM तक
-
 📴 *रविवार:* अवकाश (Holiday)
 
-⏰ School समय पर खुलता है, कृपया समय का पालन करें।
-
-📞 अधिक जानकारी के लिए संपर्क करें: 070712 50111`
+📞 अधिक जानकारी: 070712 50111`
     },
 
     admission: {
         patterns: [
             "admission", "admissions", "admission process", "how to get admission",
-            "admission procedure", "how to apply", "application process",
-            "admision", "admissn", "addmission", "admisssion", "admition",
-            "dakhla", "pravesh", "admission kaise le", "dakhla kaise le", "pravesh kaise le",
-            "school me dakhla", "admission lena hai", "admission chahiye",
-            "dakhila", "dakhla kese le", "pravesh kese le", "admisn kese le"
+            "admision", "admissn", "addmission", "dakhla", "pravesh",
+            "admission kaise le", "dakhla kaise le", "admission chahiye"
         ],
         response: `📝 *RVVM Admission Process:*
 
-✅ *Process Steps:*
-1. School office में working hours में visit करें
+✅ *Steps:*
+1. School office visit करें (8 AM - 3 PM)
 2. Admission form भरें
-3. आवश्यक documents submit करें
-4. Fees payment करें
+3. Documents submit करें
 
-🕗 *Visit Timing:* सोमवार से शनिवार, 8:00 AM - 3:00 PM
-
-📞 *Contact for Admission:*
-☎️ Phone: 070712 50111 / +91 70712 50999
-📧 Email: radhikavilaschakia@gmail.com
+📞 *Contact:*
+☎️ 070712 50111 / +91 70712 50999
+📧 radhikavilaschakia@gmail.com
 💬 WhatsApp: +91 70712 50999
-
-🌐 *Online Form:* https://rvvm.netlify.app पर जाकर admission enquiry form भरें
-
-📍 *Address:* SH-1B, Chakia (Dalpatpur), Ballia, UP`
+🌐 https://rvvm.netlify.app`
     },
 
     contact: {
         patterns: [
-            "contact", "contact details", "phone number", "contact number", "mobile number",
-            "email", "email address", "how to contact", "phone", "call", "whatsapp number",
-            "contect", "cantact", "kontact", "contct", "contact detals",
-            "sampark", "phone number kya hai", "contact kaise kare", "number do",
-            "phone number batao", "email kya hai", "whatsapp number", "kaise contact kare"
+            "contact", "contact details", "phone number", "contact number",
+            "contect", "cantact", "sampark", "number do", "phone chahiye"
         ],
-        response: `📞 *RVVM Contact Details:*
+        response: `📞 *RVVM Contact:*
 
-☎️ *Phone Numbers:*
-📱 070712 50111
+☎️ 070712 50111
 📱 +91 70712 50999
-
-📧 *Email:*
-✉️ radhikavilaschakia@gmail.com
-
-💬 *WhatsApp:*
-📲 +91 70712 50999
-
-🌐 *Website:*
-🔗 https://rvvm.netlify.app
-
-📘 *Facebook:*
-👉 Radhika Vilas Vidya Mandir
-
-🕗 *Contact Timing:* सोमवार से शनिवार, 8:00 AM - 3:00 PM`
+📧 radhikavilaschakia@gmail.com
+💬 WhatsApp: +91 70712 50999
+🌐 https://rvvm.netlify.app`
     },
 
     address: {
         patterns: [
-            "address", "location", "where is school", "school address", "school location",
-            "where is rvvm", "school kaha hai", "direction", "map", "how to reach",
-            "addres", "adress", "adres", "locaton", "loction",
-            "pata", "school ka pata", "address batao", "kaha hai school", "school kahaan hai",
-            "kaise pahunche", "location kya hai", "address kya hai"
+            "address", "location", "where is school", "school address",
+            "addres", "pata", "school ka pata", "kaha hai"
         ],
-        response: `📍 *RVVM School Address:*
+        response: `📍 *RVVM Address:*
 
-🏫 *Full Address:*
-Radhika Vilas Vidya Mandir
+🏫 Radhika Vilas Vidya Mandir
 SH-1B, Chakia (Dalpatpur)
-Ballia, Uttar Pradesh
-India
+Ballia, Uttar Pradesh, India
 
-🗺️ *Landmark:* Chakia, Ballia
-
-🚌 *How to Reach:*
-School SH-1B highway पर स्थित है। Chakia area में पूछकर आसानी से पहुँच सकते हैं।
-
-🚗 School bus facility भी उपलब्ध है।
-
-📞 Direction के लिए call करें: 070712 50111
-
-🌐 Map: https://rvvm.netlify.app पर visit करें`
+🚌 School bus facility available
+📞 Directions: 070712 50111`
     },
 
     facilities: {
         patterns: [
-            "facilities", "facility", "what facilities", "school facilities", "infrastructure",
-            "what is available", "amenities", "lab", "library", "playground", "computer lab",
-            "facilites", "facilitys", "facilty",
-            "suvidha", "suvidhayen", "school me kya hai", "kya kya hai", "school ki suvidha"
+            "facilities", "facility", "what facilities", "school facilities",
+            "facilites", "suvidha", "school me kya hai"
         ],
         response: `🏫 *RVVM Facilities:*
 
-🔬 *Science Laboratory*
-💻 *Computer Lab*
-⚽ *Playground*
-⚡ *Power Backup (24/7)*
-🛡️ *24/7 Security*
-🔥 *Fire Safety*
-🚌 *School Bus/Transport Facility*
-🎓 *Scholarship* (गरीब, अनाथ और विकलांग छात्रों के लिए)
+🔬 Science Lab | 💻 Computer Lab | ⚽ Playground
+⚡ 24/7 Power | 🛡️ Security | 🔥 Fire Safety
+🚌 School Bus | 🎓 Scholarship
 
-🎭 *Extra Activities:*
-• Annual Function
-• Cultural Programs
-• Sports Activities
-
-🏆 RVVM में students की safety aur education के लिए सभी modern facilities उपलब्ध हैं।
-
-📞 अधिक जानकारी: 070712 50111`
+📞 More info: 070712 50111`
     },
 
     classes: {
         patterns: [
-            "classes", "which classes", "class available", "nursery to which class",
-            "classes available", "which standard", "what classes",
-            "clasess", "clases", "which clasess",
-            "kaun kaun si class", "class kya kya hai", "konsi class tak", "nursery se kitni class"
+            "classes", "which classes", "class available",
+            "clasess", "kaun kaun si class", "konsi class tak"
         ],
-        response: `📚 *RVVM Classes Available:*
+        response: `📚 *RVVM Classes:*
 
-🎒 *Nursery से Class 10th तक*
+🎒 Nursery to Class 10
 
-👶 Nursery
-📖 Class 1 to 8
-📘 Class 9
-📙 Class 10
+📖 *Medium:*
+• Nursery-8th: English
+• 9th-10th: Hindi
 
-📖 *Medium of Instruction:*
-• Nursery to 8th: *English Medium*
-• Class 9th to 10th: *Hindi Medium*
-
-📋 *Board:* U.P. Board (Uttar Pradesh Board)
-
-🎓 Quality education छोटे बच्चों से लेकर 10th तक के students के लिए।
-
-📞 Class-wise details: 070712 50111`
+📋 Board: U.P. Board`
     },
 
     fees: {
         patterns: [
-            "fees", "fee structure", "school fees", "how much fees", "fees kitni hai",
-            "monthly fees", "admission fees", "total fees", "fee details",
-            "fess", "fee structre", "school fes", "kitna paisa lagta hai", "fees batao"
+            "fees", "fee structure", "school fees", "how much fees",
+            "fess", "fees kitni hai", "kitna paisa"
         ],
-        response: `💰 *RVVM Fees Information:*
+        response: `💰 *RVVM Fees:*
 
-🔒 Fees structure की detailed information publicly available नहीं है।
+Fees details के लिए संपर्क करें:
+☎️ 070712 50111 / +91 70712 50999
 
-📞 *Fees जानने के लिए contact करें:*
-
-☎️ Phone: 070712 50111 / +91 70712 50999
-📧 Email: radhikavilaschakia@gmail.com
-💬 WhatsApp: +91 70712 50999
-
-🎓 *Special Facility:*
-School गरीब, अनाथ और विकलांग छात्रों के लिए *Scholarship* provide करता है।
-
-🏫 Office visit करके complete fee details प्राप्त कर सकते हैं।
-
-🕗 Visit Time: सोमवार से शनिवार, 8:00 AM - 3:00 PM`
-    },
-
-    website: {
-        patterns: [
-            "website", "website link", "online", "site", "web address", "url",
-            "websit", "websyte", "webiste", "website kya hai", "website link do"
-        ],
-        response: `🌐 *RVVM Online Presence:*
-
-🔗 *Official Website:*
-https://rvvm.netlify.app
-
-📘 *Facebook Page:*
-Radhika Vilas Vidya Mandir
-
-📱 *Online Admission Form:*
-Website पर जाकर admission enquiry form भर सकते हैं।
-
-💻 Website पर आपको मिलेगा:
-• School information
-• Admission details
-• Contact information
-• Photo gallery
-• Updates & announcements
-
-🌐 Visit करें और school के बारे में complete information पाएं!`
+🎓 Scholarship available for poor, orphan & handicapped students`
     },
 
     management: {
         patterns: [
-            "chairman", "director", "principal", "management", "who is chairman",
-            "who is director", "school head", "management team", "owner",
-            "charman", "directr", "managment", "chairman kaun hai", "director kaun hai"
+            "chairman", "director", "principal", "management",
+            "charman", "chairman kaun", "director kaun"
         ],
         response: `👔 *RVVM Management:*
 
-👨‍💼 *Chairman:*
-Mr. Ravi Shankar Singh
+👨‍💼 Chairman: Mr. Ravi Shankar Singh
+👨‍💼 Director: Mr. Bhaskar Singh
+🕊️ Founder: Lt. Vindhyachal Prasad Singh (1924-2009)
 
-👨‍💼 *Director:*
-Mr. Bhaskar Singh
-
-🕊️ *Founder:*
-Lt. Vindhyachal Prasad Singh (1924-2009)
-
-🏛️ *Governed by:*
-Shri Vindhyachal Seva Samiti
-
-🎓 *Principal Information:*
-Principal details के लिए school office से संपर्क करें।
-
-📞 *Management से contact:*
-☎️ 070712 50111 / +91 70712 50999
-📧 radhikavilaschakia@gmail.com
-
-🏫 RVVM experienced aur dedicated management team के guidance में चलता है।`
+📞 Contact: 070712 50111`
     },
 
     default: {
-        response: `❓ *Sorry, मुझे आपका सवाल समझ नहीं आया।*
+        response: `❓ *मुझे समझ नहीं आया।*
 
-आप ये सवाल पूछ सकते हैं:
+पूछ सकते हैं:
+🕗 Timing | 📝 Admission | 📞 Contact
+📍 Address | 🏫 Facilities | 📚 Classes
 
-📝 *Admission Process*
-🕗 *School Timing*
-📞 *Contact Details*
-📍 *School Address*
-🏫 *Facilities*
-📚 *Classes Available*
-💰 *Fees Structure*
-🌐 *Website*
-👔 *Management*
-
-या फिर direct contact करें:
-☎️ 070712 50111 / +91 70712 50999
-📧 radhikavilaschakia@gmail.com
-💬 WhatsApp: +91 70712 50999`
+या call करें: 070712 50111`
     }
 };
 
-// Rate Limiting
-let apiCallCount = 0;
-const MAX_API_CALLS = 250; // Google Gemini free tier daily limit
+// ==================== SMART API KEY & MODEL ROTATION ====================
 
-// Call Gemini AI API Directly with Retry Logic
-async function callGeminiAPI(userQuery, retryCount = 0) {
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 2000; // 2 seconds
-    
-    // Check daily limit
-    if (apiCallCount >= MAX_API_CALLS) {
-        console.log('⚠️ Daily API limit reached (250/250)');
+function getNextAvailableKey() {
+    // Find key with available quota
+    for (let i = 0; i < API_KEYS.length; i++) {
+        const keyIndex = (currentKeyIndex + i) % API_KEYS.length;
+        if (keyUsageCount[keyIndex] < MAX_REQUESTS_PER_KEY) {
+            currentKeyIndex = keyIndex;
+            return { key: API_KEYS[keyIndex], index: keyIndex };
+        }
+    }
+    return null; // All keys exhausted
+}
+
+function getNextModel() {
+    currentModelIndex = (currentModelIndex + 1) % AI_MODELS.length;
+    return AI_MODELS[currentModelIndex];
+}
+
+function getTotalUsage() {
+    return keyUsageCount.reduce((sum, count) => sum + count, 0);
+}
+
+function getMaxCapacity() {
+    return API_KEYS.length * MAX_REQUESTS_PER_KEY;
+}
+
+// ==================== ADVANCED API CALL WITH RETRY & FALLBACK ====================
+
+async function callGeminiAPI(userQuery, retryCount = 0, modelIndex = 0) {
+    // Check if all keys exhausted
+    const keyInfo = getNextAvailableKey();
+    if (!keyInfo) {
+        console.log('⚠️ All API keys quota exhausted for today');
         return null;
     }
 
+    const currentModel = AI_MODELS[modelIndex];
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent`;
+
     try {
-        console.log(`🤖 Calling Gemini AI... (Attempt ${retryCount + 1}/${MAX_RETRIES + 1})`);
-        
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        const attemptInfo = `[Key ${keyInfo.index + 1}/${API_KEYS.length}] [Model: ${currentModel}] [Retry ${retryCount + 1}/${MAX_RETRIES + 1}]`;
+        console.log(`🤖 Calling Gemini AI ${attemptInfo}...`);
+
+        const response = await fetch(`${apiUrl}?key=${keyInfo.key}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -320,21 +474,33 @@ async function callGeminiAPI(userQuery, retryCount = 0) {
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `You are RVVM school's helpful virtual assistant. Answer in Hindi/English mix (Hinglish) based on user's language preference.
+                      text: `You are the official virtual assistant of Radhika Vilas Vidya Mandir (RVVM), Ballia.
 
-School Information:
+Your role: Help students, parents, and visitors with accurate school information.
+
+Communication Style:
+- Answer in Hindi/English mix (Hinglish) matching user's language
+- Keep responses concise (2-4 lines maximum)
+- Use appropriate emojis for engagement
+- Be professional, friendly, and helpful
+- Address users respectfully (आप, Sir/Madam)
+
+Guidelines:
+- Use ONLY information from the school database provided below
+- If specific information is not available, politely ask to contact: 070712 50111
+- For admission queries, encourage office visit or call
+- For fees/scholarship, direct to office as fees vary by class
+- Always provide phone/email for detailed queries
+- Maintain school's reputation with positive language
+
+Complete School Information Database:
 ${schoolContext}
-
-Important Instructions:
-- Keep answers short and concise (2-3 lines maximum)
-- Use emojis to make responses engaging
-- If information is not available in school context, politely ask user to contact: 070712 50111
-- Be friendly, helpful, and professional
-- Match the language style of the user's question
 
 User Question: ${userQuery}
 
-Helpful Answer:`
+
+
+Answer:`
                     }]
                 }],
                 generationConfig: {
@@ -346,103 +512,148 @@ Helpful Answer:`
             })
         });
 
+        // Handle different error codes
         if (!response.ok) {
-            // Check if overloaded (429 or 503 error)
-            if ((response.status === 429 || response.status === 503) && retryCount < MAX_RETRIES) {
-                console.log(`⚠️ Server overloaded (${response.status}), retrying in ${RETRY_DELAY/1000}s...`);
-                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-                return callGeminiAPI(userQuery, retryCount + 1); // Retry
+            const status = response.status;
+            
+            // Server overloaded or rate limit
+            if (status === 503 || status === 429) {
+                console.log(`⚠️ Server overloaded (${status})`);
+                
+                // Try different model first
+                if (modelIndex < AI_MODELS.length - 1) {
+                    console.log(`🔄 Switching to next model...`);
+                    await sleep(RETRY_DELAY);
+                    return callGeminiAPI(userQuery, retryCount, modelIndex + 1);
+                }
+                
+                // Then retry with delay
+                if (retryCount < MAX_RETRIES) {
+                    console.log(`⏳ Retrying in ${RETRY_DELAY/1000}s...`);
+                    await sleep(RETRY_DELAY);
+                    return callGeminiAPI(userQuery, retryCount + 1, 0);
+                }
             }
             
-            const errorText = await response.text();
-            console.error('❌ API Error:', response.status, errorText);
-            throw new Error(`API returned ${response.status}`);
+            // Quota exceeded for this key - try next key
+            if (status === 429) {
+                console.log(`⚠️ Key ${keyInfo.index + 1} quota exceeded, trying next key...`);
+                keyUsageCount[keyInfo.index] = MAX_REQUESTS_PER_KEY; // Mark as exhausted
+                return callGeminiAPI(userQuery, retryCount, modelIndex);
+            }
+            
+            throw new Error(`API returned ${status}`);
         }
 
+        // Success - parse response
         const data = await response.json();
         
-        // Validate response structure
         if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-            console.error('❌ Invalid API response structure');
-            throw new Error('Invalid response from AI');
+            throw new Error('Invalid response structure');
         }
 
-        apiCallCount++;
-        const aiResponse = data.candidates[0].content.parts[0].text;
+        // Update usage count
+        keyUsageCount[keyInfo.index]++;
+        const totalUsage = getTotalUsage();
+        const maxCapacity = getMaxCapacity();
         
-        console.log(`✅ AI Response generated | Calls today: ${apiCallCount}/${MAX_API_CALLS}`);
+        console.log(`✅ Success! | Key ${keyInfo.index + 1}: ${keyUsageCount[keyInfo.index]}/${MAX_REQUESTS_PER_KEY} | Total: ${totalUsage}/${maxCapacity}`);
         
-        return aiResponse;
-        
+        return data.candidates[0].content.parts[0].text;
+
     } catch (error) {
-        if (retryCount < MAX_RETRIES) {
-            console.log(`⚠️ Error occurred, retrying... (${retryCount + 1}/${MAX_RETRIES})`);
-            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-            return callGeminiAPI(userQuery, retryCount + 1);
+        console.error(`❌ Error: ${error.message}`);
+        
+        // Try next model on error
+        if (modelIndex < AI_MODELS.length - 1) {
+            console.log(`🔄 Trying different model...`);
+            await sleep(RETRY_DELAY);
+            return callGeminiAPI(userQuery, retryCount, modelIndex + 1);
         }
         
-        console.error('❌ Gemini API Error after retries:', error.message);
+        // Retry with delay
+        if (retryCount < MAX_RETRIES) {
+            console.log(`🔄 Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+            await sleep(RETRY_DELAY);
+            return callGeminiAPI(userQuery, retryCount + 1, 0);
+        }
+        
+        console.error('❌ All attempts failed, using fallback');
         return null;
     }
 }
 
+// Helper function for delay
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-// Try multiple models if one fails
-const MODELS = [
-    'gemini-2.5-flash',
-    'gemini-flash-latest', 
-    'gemini-2.0-flash',
-    'gemini-pro-latest'
-];
+// ==================== LEVENSHTEIN DISTANCE (TYPO TOLERANCE) ====================
 
-let currentModelIndex = 0;
-
-async function callGeminiAPI(userQuery) {
-    for (let i = 0; i < MODELS.length; i++) {
-        const modelName = MODELS[(currentModelIndex + i) % MODELS.length];
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
-        
-        try {
-            console.log(`🤖 Trying model: ${modelName}...`);
-            
-            const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: `${schoolContext}\n\nUser: ${userQuery}\n\nAnswer:` }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 200
-                    }
-                })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                apiCallCount++;
-                console.log(`✅ Success with ${modelName} | Calls: ${apiCallCount}/${MAX_API_CALLS}`);
-                currentModelIndex = (currentModelIndex + i) % MODELS.length; // Remember working model
-                return data.candidates[0].content.parts[0].text;
-            } else if (response.status === 503 || response.status === 429) {
-                console.log(`⚠️ ${modelName} overloaded, trying next model...`);
-                continue; // Try next model
+function levenshteinDistance(str1, str2) {
+    str1 = str1.toLowerCase();
+    str2 = str2.toLowerCase();
+    
+    const matrix = [];
+    for (let i = 0; i <= str2.length; i++) {
+        matrix[i] = [i];
+    }
+    for (let j = 0; j <= str1.length; j++) {
+        matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= str2.length; i++) {
+        for (let j = 1; j <= str1.length; j++) {
+            if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
             } else {
-                throw new Error(`${response.status}`);
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j] + 1
+                );
+            }
+        }
+    }
+    
+    return matrix[str2.length][str1.length];
+}
+
+// ==================== FIND PREDEFINED MATCH ====================
+
+function findPredefinedMatch(userInput) {
+    userInput = userInput.toLowerCase().trim();
+    
+    for (let category in chatbotData) {
+        if (category === 'default') continue;
+        
+        const patterns = chatbotData[category].patterns;
+        for (let pattern of patterns) {
+            // Exact match
+            if (userInput.includes(pattern.toLowerCase())) {
+                return chatbotData[category].response;
             }
             
-        } catch (error) {
-            console.log(`❌ ${modelName} failed:`, error.message);
-            if (i === MODELS.length - 1) return null; // All models failed
+            // Fuzzy match (typo tolerance)
+            if (levenshteinDistance(userInput, pattern) <= 3) {
+                return chatbotData[category].response;
+            }
         }
     }
     
     return null;
 }
 
+// ==================== STATUS LOGGING ====================
 
-
-
-
-
+function logStatus() {
+    const totalUsage = getTotalUsage();
+    const maxCapacity = getMaxCapacity();
+    console.log(`\n📊 API Usage Status:`);
+    console.log(`Total: ${totalUsage}/${maxCapacity} requests used`);
+    API_KEYS.forEach((key, i) => {
+        const keyShort = key.substring(0, 15) + '...';
+        console.log(`  Key ${i + 1}: ${keyUsageCount[i]}/${MAX_REQUESTS_PER_KEY} (${keyShort})`);
+    });
+    console.log(`Current Model: ${AI_MODELS[currentModelIndex]}\n`);
+}

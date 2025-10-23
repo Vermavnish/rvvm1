@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 exports.handler = async (event, context) => {
     // CORS headers
     const headers = {
@@ -9,12 +7,12 @@ exports.handler = async (event, context) => {
         'Content-Type': 'application/json'
     };
     
-    // Handle preflight request
+    // Handle preflight
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
     }
     
-    // Only allow POST
+    // Only POST allowed
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
@@ -27,10 +25,22 @@ exports.handler = async (event, context) => {
         const { query, schoolContext } = JSON.parse(event.body);
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
         
+        // Check API key exists
         if (!GEMINI_API_KEY) {
-            throw new Error('API key not configured');
+            console.error('❌ GEMINI_API_KEY not found in environment variables');
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ 
+                    error: 'API key not configured',
+                    fallback: true 
+                })
+            };
         }
         
+        console.log('✅ API Key found, making request...');
+        
+        // Make API request
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
             {
@@ -39,21 +49,14 @@ exports.handler = async (event, context) => {
                 body: JSON.stringify({
                     contents: [{
                         parts: [{
-                            text: `You are RVVM school's virtual assistant. Answer in Hindi/English mix (Hinglish) based on user's language.
+                            text: `You are RVVM school's virtual assistant. Answer in Hindi/English mix (Hinglish).
 
 School Information:
 ${schoolContext}
 
-Important Instructions:
-- Keep answers short (2-3 lines max)
-- Use emojis for better readability
-- If information not available, ask user to contact: 070712 50111
-- Be friendly and helpful
-- Answer in the same language user asked (Hindi/English/Hinglish)
-
 User Question: ${query}
 
-Answer:`
+Answer in 2-3 lines with emojis.`
                         }]
                     }],
                     generationConfig: {
@@ -64,12 +67,23 @@ Answer:`
             }
         );
         
+        // Check response
         if (!response.ok) {
-            throw new Error(`API returned ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ API Error:', response.status, errorText);
+            throw new Error(`API returned ${response.status}: ${errorText}`);
         }
         
         const data = await response.json();
+        
+        // Check if response has expected structure
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+            console.error('❌ Unexpected API response structure:', data);
+            throw new Error('Invalid API response structure');
+        }
+        
         const botResponse = data.candidates[0].content.parts[0].text;
+        console.log('✅ AI Response generated successfully');
         
         return {
             statusCode: 200,
@@ -78,12 +92,13 @@ Answer:`
         };
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Function Error:', error.message);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({ 
                 error: 'Failed to get AI response',
+                message: error.message,
                 fallback: true 
             })
         };

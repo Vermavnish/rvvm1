@@ -298,8 +298,11 @@ Principal details के लिए school office से संपर्क क�
 let apiCallCount = 0;
 const MAX_API_CALLS = 250; // Google Gemini free tier daily limit
 
-// Call Gemini AI API Directly
-async function callGeminiAPI(userQuery) {
+// Call Gemini AI API Directly with Retry Logic
+async function callGeminiAPI(userQuery, retryCount = 0) {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 2000; // 2 seconds
+    
     // Check daily limit
     if (apiCallCount >= MAX_API_CALLS) {
         console.log('⚠️ Daily API limit reached (250/250)');
@@ -307,7 +310,7 @@ async function callGeminiAPI(userQuery) {
     }
 
     try {
-        console.log('🤖 Calling Gemini AI directly...');
+        console.log(`🤖 Calling Gemini AI... (Attempt ${retryCount + 1}/${MAX_RETRIES + 1})`);
         
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
@@ -344,6 +347,13 @@ Helpful Answer:`
         });
 
         if (!response.ok) {
+            // Check if overloaded (429 or 503 error)
+            if ((response.status === 429 || response.status === 503) && retryCount < MAX_RETRIES) {
+                console.log(`⚠️ Server overloaded (${response.status}), retrying in ${RETRY_DELAY/1000}s...`);
+                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                return callGeminiAPI(userQuery, retryCount + 1); // Retry
+            }
+            
             const errorText = await response.text();
             console.error('❌ API Error:', response.status, errorText);
             throw new Error(`API returned ${response.status}`);
@@ -365,9 +375,70 @@ Helpful Answer:`
         return aiResponse;
         
     } catch (error) {
-        console.error('❌ Gemini API Error:', error.message);
+        if (retryCount < MAX_RETRIES) {
+            console.log(`⚠️ Error occurred, retrying... (${retryCount + 1}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+            return callGeminiAPI(userQuery, retryCount + 1);
+        }
+        
+        console.error('❌ Gemini API Error after retries:', error.message);
         return null;
     }
+}
+
+
+// Try multiple models if one fails
+const MODELS = [
+    'gemini-2.5-flash',
+    'gemini-flash-latest', 
+    'gemini-2.0-flash',
+    'gemini-pro-latest'
+];
+
+let currentModelIndex = 0;
+
+async function callGeminiAPI(userQuery) {
+    for (let i = 0; i < MODELS.length; i++) {
+        const modelName = MODELS[(currentModelIndex + i) % MODELS.length];
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+        
+        try {
+            console.log(`🤖 Trying model: ${modelName}...`);
+            
+            const response = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: `${schoolContext}\n\nUser: ${userQuery}\n\nAnswer:` }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 200
+                    }
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                apiCallCount++;
+                console.log(`✅ Success with ${modelName} | Calls: ${apiCallCount}/${MAX_API_CALLS}`);
+                currentModelIndex = (currentModelIndex + i) % MODELS.length; // Remember working model
+                return data.candidates[0].content.parts[0].text;
+            } else if (response.status === 503 || response.status === 429) {
+                console.log(`⚠️ ${modelName} overloaded, trying next model...`);
+                continue; // Try next model
+            } else {
+                throw new Error(`${response.status}`);
+            }
+            
+        } catch (error) {
+            console.log(`❌ ${modelName} failed:`, error.message);
+            if (i === MODELS.length - 1) return null; // All models failed
+        }
+    }
+    
+    return null;
 }
 
 

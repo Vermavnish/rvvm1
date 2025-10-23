@@ -302,24 +302,7 @@ about bot:
 // ==================== PREDEFINED RESPONSES ====================
 
 const chatbotData = {
-     about_bot: {
-        patterns: [
-            "tumhe kisne banaya", "who made you", "who created you", "developer kaun hai",
-            "tum kaun ho", "chatbot kisne banaya", "tumhara naam", "kon ho tum"
-        ],
-        response: `🤖 *मैं RVVM Virtual Assistant हूँ!*
-
-👨‍💻 *Developed by:* Avnish Kumar - RVVM student
-🎓 *School:* Radhika Vilas Vidya Mandir, Ballia
-⚡ *Powered by:* RVVM Tchnical team
-🌐 *Portfolio:* 
-
-💡 *मेरा काम:* School information provide करना और parents/students की help करना
-
-📚 आप मुझसे admission, timing, facilities, fees - सब कुछ पूछ सकते हैं!
-
-📞 Direct contact: 070712 50111`
-    },
+    
     timing: {
         patterns: [
             "school timing", "school timings", "school time", "school hours", "school schedule",
@@ -688,4 +671,5 @@ function logStatus() {
     });
     console.log(`Current Model: ${AI_MODELS[currentModelIndex]}\n`);
 }
+
 

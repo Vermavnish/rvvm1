@@ -251,7 +251,41 @@ body {
     transform: translateY(0);
 }
 
-/* Scrollbar Styling - Perplexity Style */
+/* Typing Indicator */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: #94a3b8;
+    border-radius: 50%;
+    animation: typing 1.4s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 100% { 
+        transform: translateY(0);
+        opacity: 0.6;
+    }
+    50% { 
+        transform: translateY(-8px);
+        opacity: 1;
+    }
+}
+
+/* Scrollbar Styling */
 .chatbot-body::-webkit-scrollbar {
     width: 6px;
 }
@@ -267,13 +301,6 @@ body {
 
 .chatbot-body::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
-}
-
-/* Citation Style Links */
-.bot-message .message-content br {
-    display: block;
-    content: "";
-    margin-top: 8px;
 }
 
 /* Mobile Responsive */
@@ -307,78 +334,4 @@ body {
     .chatbot-footer {
         padding: 16px;
     }
-}
-
-/* Dark Theme Support (Optional) */
-@media (prefers-color-scheme: dark) {
-    body {
-        background: #1a1a1a;
-    }
-    
-    .chatbot-container {
-        background: #2d2d2d;
-        border-color: #404040;
-    }
-    
-    .chatbot-body {
-        background: #2d2d2d;
-    }
-    
-    .welcome-message {
-        background: linear-gradient(135deg, #1e3a5f 0%, #2d1b4e 100%);
-        border-color: #404040;
-    }
-    
-    .welcome-message p {
-        color: #e5e7eb;
-    }
-    
-    .bot-message .message-content {
-        background: #383838;
-        border-color: #4a4a4a;
-        color: #e5e7eb;
-    }
-    
-    #userInput {
-        background: #383838;
-        border-color: #4a4a4a;
-        color: #e5e7eb;
-    }
-    
-    #userInput:focus {
-        background: #404040;
-    }
-    
-    .chatbot-footer {
-        background: #2d2d2d;
-        border-top-color: #404040;
-    }
-}
-
-/* Loading Animation (Optional Enhancement) */
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-.typing-indicator {
-    display: flex;
-    gap: 4px;
-    padding: 12px 16px;
-}
-
-.typing-indicator span {
-    width: 8px;
-    height: 8px;
-    background: #94a3b8;
-    border-radius: 50%;
-    animation: pulse 1.4s ease-in-out infinite;
-}
-
-.typing-indicator span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.typing-indicator span:nth-child(3) {
-    animation-delay: 0.4s;
 }

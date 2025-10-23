@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RVVM Virtual Assistant - Radhika Vilas Vidya Mandir</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="chatbot-header">
+            <div class="header-content">
+                <h2>🎓 RVVM Virtual Assistant</h2>
+                <p>Radhika Vilas Vidya Mandir, Ballia</p>
+            </div>
+            <button class="minimize-btn" onclick="toggleChatbot()">−</button>
+        </div>
+        
+        <div class="chatbot-body" id="chatbotBody">
+            <div class="welcome-message">
+                <p>🙏 नमस्ते! Welcome to RVVM!</p>
+                <p>मैं आपकी सहायता के लिए यहाँ हूँ। आप मुझसे school के बारे में कुछ भी पूछ सकते हैं:</p>
+                <div class="quick-questions">
+                    <button onclick="sendQuickQuery('school timing')">🕒 School Timing</button>
+                    <button onclick="sendQuickQuery('admission')">📝 Admission Process</button>
+                    <button onclick="sendQuickQuery('contact')">📞 Contact Details</button>
+                    <button onclick="sendQuickQuery('facilities')">🏫 Facilities</button>
+                    <button onclick="sendQuickQuery('address')">📍 Address</button>
+                    <button onclick="sendQuickQuery('classes')">📚 Classes Available</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chatbot-footer">
+            <input 
+                type="text" 
+                id="userInput" 
+                placeholder="अपना सवाल यहाँ लिखें... (Hindi/English)" 
+                onkeypress="handleKeyPress(event)"
+            >
+            <button onclick="sendMessage()">📤</button>
+        </div>
+    </div>
+
+    <script src="chatbot-data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
